@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"net"
 	"sort"
+	"time"
 )
 
 func worker(ports, results chan int) {
 	for p := range ports {
 		address := fmt.Sprintf("scanme.nmap.org:%d", p)
-		conn, err := net.Dial("tcp", address)
+		conn, err := net.DialTimeout("tcp", address, time.Second)
 		if err != nil {
 			results <- 0
 			continue
@@ -20,6 +21,8 @@ func worker(ports, results chan int) {
 }
 
 func main() {
+	startTime := time.Now() // Запоминаем время начала работы скрипта
+
 	ports := make(chan int, 100)
 	results := make(chan int)
 	var openports []int
@@ -47,4 +50,7 @@ func main() {
 	for _, port := range openports {
 		fmt.Printf("%d port is open\n", port)
 	}
+
+	elapsedTime := time.Since(startTime) // Вычисляем прошедшее время
+	fmt.Printf("Scanning finished in %s\n", elapsedTime)
 }
